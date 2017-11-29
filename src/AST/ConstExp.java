@@ -10,6 +10,13 @@ public class ConstExp extends Expression{
 		this.number = number;
 	}
 	
+	public ConstExp(Boolean neg, Integer number) {
+		if(neg == true) {
+			this.number = 0 - number;
+		}
+		
+	}
+	
 	public String toString() {
 		return "ConstExp(" + number + ")";
 	}

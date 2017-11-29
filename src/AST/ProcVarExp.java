@@ -20,7 +20,7 @@ public class ProcVarExp extends Expression{
 		cpstring.append("(");
 		cpstring.append(procedure.toString());
 		
-		cpstring.append("::" + operand.toString());
+		cpstring.append(":" + operand);
 		cpstring.append(")");
 		
 		return cpstring.toString();

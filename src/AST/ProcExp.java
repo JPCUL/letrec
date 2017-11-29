@@ -24,7 +24,7 @@ public class ProcExp extends Expression{
 			
 			procstring.append(": ");
 			procstring.append(body.toString());
-			procstring.append("} ");
+			procstring.append("}");
 			return procstring.toString();
 	}
 	

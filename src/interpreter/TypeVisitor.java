@@ -14,5 +14,7 @@ public interface TypeVisitor {
 	ExpType visit(IfExp exp);
 	ExpType visit(ProcExp exp);
 	ExpType visit(ProcVarExp exp);
+	ExpType visit(LetRecExp exp);
+	ExpType visit(IsZeroExp exp);
 	
 }

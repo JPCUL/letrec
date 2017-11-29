@@ -13,7 +13,7 @@ public class DiffExp extends Expression{
 	}
 	
 	public String toString() {
-		return "\nDiffExp(\n " + left.toString() + "\n " + right.toString() + ")\n";
+		return "\nDiffExp(\n " + left.toString() + "\n " + right.toString() + ")";
 	}
 	
 	public ExpType visit(TypeVisitor visitor) {

@@ -1,5 +1,6 @@
 package interpreter;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,12 +45,21 @@ public class Interpreter implements TypeVisitor {
 		
 		ExpVal val = (ExpVal)exp.letexp.visit(this);
 		
+		if(val instanceof ProcVal) {
+			//System.out.println("Re-extending Environment");
+			Hashtable<String, ExpVal> procdef = new Hashtable<String, ExpVal>();
+			procdef.put(var, val);
+			((ProcVal) val).savedEnv.add(procdef);
+			itpEnv.extendEnvRec(procdef);
+			
+		}
 		//System.out.println(" = \n" + val.toString());
 		
 		itpEnv.extendEnv(var, val);
 		
+		
 		ExpType letval = body.visit(this);
-		//System.out.println("value:::  " + letval.toString());
+		
 		//System.out.println(itpEnv.toString());
 		itpEnv.leaveScope();
 		
@@ -76,13 +86,19 @@ public class Interpreter implements TypeVisitor {
 
 	@Override
 	public ExpType visit(VarExp exp) {
-		//System.out.println("===========VAR===EXP=========");
 		String var = exp.var;
-		//System.out.println("VAR:" + var);
-		//System.out.println(itpEnv.toString());
-		if(itpEnv.containsVal(var)) {
-			//System.out.println("Returing " +var+ " with val::" + itpEnv.findExpVal(var));
-			//System.out.println(itpEnv);
+
+		if(itpEnv.containsProc(var)) {
+			ProcVal retrievedProc = (ProcVal)itpEnv.findProc(var);
+			
+			Hashtable<String, ExpVal> procValExt = new Hashtable<String, ExpVal>();
+			procValExt.put(var, new ProcVal(retrievedProc.arg, retrievedProc.body, itpEnv));
+			
+			return new ProcVal(retrievedProc.arg, retrievedProc.body, itpEnv);
+		}
+		
+		else if(itpEnv.containsVal(var)) {
+			
 			return itpEnv.findExpVal(var);
 		
 		}else {
@@ -93,49 +109,110 @@ public class Interpreter implements TypeVisitor {
 
 	@Override
 	public ExpType visit(IfExp exp) {
-		// TODO Auto-generated method stub
-		return null;
+		//System.out.println("IfExp Eval("  + exp.toString() + " )");
+		Expression ift = exp.ifthen;
+		Expression ife = exp.ifelse;
+		
+		Boolean val = ((BoolVal) exp.arg.visit(this)).val;
+		if(val == true) {
+			return ift.visit(this);
+		}
+		else {
+			return ife.visit(this);
+		}
 	}
 
 	@Override
 	public ExpType visit(ProcExp exp) {
-		
-		return new ProcVal(exp.var, exp.body, itpEnv);
+		//System.out.println("!!----------PROC EXP----------!!");
+		final Environment procEnv = new Environment();
+		procEnv.addAll(itpEnv.SymbolTable);
+		//System.out.println("ProcExpEnv====:::\n" + procEnv);
+		return new ProcVal(exp.var, exp.body, procEnv);
 		//return retProc;
 	}
 
 	@Override
 	public ExpType visit(ProcVarExp exp) {
-		//System.out.println("==============VAR+++CALL+++EXP============");
 		ProcVal proc = (ProcVal)exp.procedure.visit(this);
-		//proc.freeVar();
-		//System.out.println("ITPENV11:::" + itpEnv);
-		List<Hashtable<String, ExpVal>>holdEnv = itpEnv.SymbolTable;
-
-		List<Hashtable<String, ExpVal>> tempEnv  = new LinkedList<>();
-		//System.out.println("TempEnv::" + tempEnv + "  " + proc.envLevel);
-		//System.out.println("SETTING ENV TO PROC SCOPE :: " + proc.setScope());
-		tempEnv = proc.setScope();
-		//System.out.println("TempEnv::" + tempEnv + "  " + proc.envLevel);
-		itpEnv.SymbolTable = tempEnv;
-		//System.out.println("SET SYMBOL TABLE::" + itpEnv);
+		
+		Environment holdEnv = new Environment();
+		Environment procTempEnv = new Environment(); 
+		
+		holdEnv.addAll(itpEnv.SymbolTable);
+		procTempEnv.addAll(proc.savedEnv);
+		
+		
+		//System.out.println("Before::" + itpEnv.toString());
+		
+		itpEnv.SymbolTable = proc.savedEnv;
+		//System.out.println("After::" + itpEnv.toString());
+		//itpEnv.addAll(proc.savedEnv);
+		//proc.savedEnv.clear();
+		//proc.savedEnv.addAll(procTempEnv);
+		
 		Expression operand = exp.operand;
 
 		String formalvar = proc.arg;
-		
-		ExpVal arg = (ExpVal)operand.visit(this);
-		
-		//System.out.println(arg);
-		itpEnv.extendEnv(formalvar, arg);
 
+		ExpVal arg = (ExpVal)operand.visit(this);
+
+		
+		itpEnv.extendEnv(formalvar, arg);
+	
 		ExpType procval = proc.body.visit(this);
 		
-		//System.out.println("HOLDENV:::" + holdEnv);
 		
-		itpEnv.envClear();
-		itpEnv.addAll(holdEnv);
+		itpEnv = holdEnv;
 		
-		//.out.println("==============END--VAR--CAR--EXP============");
 		return procval;
+	}
+
+	@Override
+	public ExpType visit(LetRecExp exp) {
+		//System.out.println("///====LetRecExp///=====");
+		String procname = exp.fname;
+		String boundvar = exp.arg;
+		Expression procbody = exp.pbody;
+		
+		/*System.out.println("procname=" + procname 
+						+" boundvar=" + boundvar 
+						+ "\nprocbody=" + procbody);
+		*/
+		Environment holdEnv = new Environment();
+		holdEnv.clear();
+		holdEnv.addAll(itpEnv.SymbolTable);
+		//itpEnv.clear();
+		
+		
+		Environment letRecProcEnv = new Environment();
+		//letRecProcEnv.clear();
+		letRecProcEnv.addAll(itpEnv);
+		
+		Hashtable<String, ExpVal> rp = new Hashtable<String, ExpVal>();
+		rp.put(procname, new ProcVal(boundvar, procbody, letRecProcEnv));
+		itpEnv.extendEnvRec(rp);
+		
+		
+		//itpEnv.clear();
+		Expression letrecbody = exp.letrecbody;
+		//itpEnv.clear();
+		
+		
+		ExpType letrecval = (ExpVal)letrecbody.visit(this);
+		//itpEnv.clear();
+		itpEnv = holdEnv;
+		holdEnv.clear();
+		return letrecval;
+	}
+
+	@Override
+	public ExpType visit(IsZeroExp exp) {
+		Integer value = ((NumVal)exp.check.visit(this)).number;
+		if(value == 0) {
+			return new BoolVal(true);
+		}else {
+			return new BoolVal(false);
+		}
 	}
 }

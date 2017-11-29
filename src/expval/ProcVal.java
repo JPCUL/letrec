@@ -11,20 +11,22 @@ import environment.Environment;
 public class ProcVal extends ExpVal{
 	public String arg;
 	public Expression body;
-	public Environment savedEnv;
+	//public Environment savedEnv = new Environment();
+	//public List<Hashtable<String, ExpVal>> savedEnv = new LinkedList<Hashtable<String, ExpVal>>();
+	public final List<Hashtable<String, ExpVal>> savedEnv;
 	final public int envLevel;
 	private String freekey = new String();
 	
 	public ProcVal(String args, Expression body, Environment savedEnv) {
 		this.arg = args;
 		this.body = body;
-		this.savedEnv = savedEnv;
+		this.savedEnv = savedEnv.SymbolTable;
 		envLevel = savedEnv.retrieveSize();
 		//System.out.println("ProcEnv Scope:: "+envLevel);
 		//System.out.println(savedEnv.toString());
 	}
 	
-	public void freeVar() {
+/*	public void freeVar() {
 		for(int i = 0; i < envLevel; i++) {
 			//System.out.println("arg::" + arg);
 			if(!savedEnv.containsVal(arg)) {
@@ -32,10 +34,16 @@ public class ProcVal extends ExpVal{
 				//System.out.println(freekey);
 			}
 		}
-	}
+	}*/
 	
-	public List<Hashtable<String, ExpVal>> setScope(){
-		return savedEnv.retrieveProcScope(envLevel);
+	public List<Hashtable<String, ExpVal>> retrieveProcScope() {
+		int level = envLevel;
+		List<Hashtable<String, ExpVal>> buildEnv = new LinkedList<Hashtable<String, ExpVal>>();
+		for(int i = 0; i < level; i++) {
+			//System.out.println("BUILDING PROC ENV::" + i + " ::" + SymbolTable.get(i));
+			buildEnv.add(savedEnv.get(i));
+		}
+		return buildEnv;
 	}
 /*	
 	public ExpVal bindFree() {
@@ -46,7 +54,7 @@ public class ProcVal extends ExpVal{
 	public String toString() {
 		StringBuilder procstring = new StringBuilder();
 		procstring.append(arg.toString());
-		procstring.append(" : ");
+		procstring.append(" :-: ");
 		procstring.append(body.toString());
 		procstring.append("\n");
 		

@@ -18,7 +18,7 @@ public class LetExp extends Expression{
 	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("LetExp{" + var + "\n");
+		sb.append("LetExp{" + var + "\n ");
 		sb.append(letexp.toString()+"\n");
 		sb.append(body.toString());
 		sb.append("}");

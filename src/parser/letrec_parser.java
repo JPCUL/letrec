@@ -1,6 +1,9 @@
 package parser;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.sun.xml.internal.fastinfoset.util.CharArray;
 
 import scanner.*;
 import AST.*;
@@ -26,7 +29,7 @@ public class letrec_parser {
 		
 		//prog.visit(inte);
 
-		System.out.println("AST\n" + finalExp);
+		System.out.println("Parse-Tree\n" + finalExp);
 /*		for(Expression e : exps) {
 			System.out.println(e.toString());
 		}*/
@@ -43,6 +46,10 @@ public class letrec_parser {
 		case INTEGER:
 			//System.out.println("INTPARSE");
 			return parseConstExp();
+		case LETREC:
+			return parseLetRecExp(TokenType.LETREC);
+		case ISZERO:
+			return parseIsZeroExp(TokenType.ISZERO);
 		/*case IF:
 			return parseIfExp();*/
 		case LET:
@@ -57,15 +64,20 @@ public class letrec_parser {
 		case IDENTIFIER:
 			//System.out.println("VARPARSE");
 			return parseVarExp();
+		case IF:
+			return parseIfExp(TokenType.IF);
 		case PROC:
 			return parseProcExp(TokenType.PROC);
 		case LPAREN:
 			return parseCallProc();
+		
 		default:
 			throw new Exception("\nIncorrect Parse, check input on: "
 					+ psdata);
 		}	
 	}
+
+
 
 	public void consume(TokenType check) throws Exception{
 		if(parse_stream.peek().type == check) {
@@ -75,7 +87,7 @@ public class letrec_parser {
 					+ "Expected: " 
 					+ check 
 					+ "\n Received: "
-					+ parse_stream.peek().type);
+					+ parse_stream.peek().type + " " + parse_stream.peek().data);
 		}
 	}
 
@@ -87,26 +99,8 @@ public class letrec_parser {
 		return new ConstExp(number);
 	}
 	
-/*	private Expression parseLetExp(TokenType LETtype) throws Exception{
-		List<String> vars = new LinkedList<>();
-		List<Expression> exps = new LinkedList<>();
-		
-		consume(LETtype);
-		
-		while(parse_stream.peek().type == TokenType.IDENTIFIER) {
-			vars.add(parse_stream.peek().data);
-			consume(TokenType.IDENTIFIER);
-			consume(TokenType.ASSIGN);
-			exps.add(parseExp());
-		}
-		consume(TokenType.IN);
-		Expression letbody = parseExp();
-		
-		parseexps.add(new LetExp(vars, exps, letbody).toString());
-		return new LetExp(vars, exps,letbody);
-	}*/
-	
 	private Expression parseLetExp(TokenType LETtype) throws Exception{
+		System.out.println("LET EXP");
 		String var = new String();
 		Expression letexp = null;
 		
@@ -136,9 +130,39 @@ public class letrec_parser {
 		exps.add(new AddExp(left, right));
 		return new AddExp(left, right);
 	}
+	private Expression parseIfExp(TokenType tif) throws Exception {
+		consume(tif);
+		
+		Expression ifarg = parseExp();
+		
+		consume(TokenType.THEN);
+		
+		Expression thenexp = parseExp();
+		
+		consume(TokenType.ELSE);
+		
+		Expression elsexp = parseExp();
+		
+		exps.add(new IfExp(ifarg, thenexp, elsexp));
+		return new IfExp(ifarg, thenexp, elsexp);
+		
+	}
+	private Expression parseIsZeroExp(TokenType iss) throws Exception {
+		consume(iss);
+		consume(TokenType.LPAREN);
+		Expression arg = parseExp();
+		consume(TokenType.RPAREN);
+		exps.add(new IsZeroExp(arg));
+		return new IsZeroExp(arg);
+		
+	}
 	
 	private Expression parseDiffExp(TokenType MINUStype) throws Exception {
 		consume(MINUStype);
+	/*	if(parse_stream.peek().type == TokenType.INTEGER) {
+			Integer number = Integer.parseInt(parse_stream.peek().data);
+			return new ConstExp(true, number);
+		}*/
 		consume(TokenType.LPAREN);
 		Expression left = parseExp();
 		consume(TokenType.COMMA);
@@ -161,8 +185,11 @@ public class letrec_parser {
 	}
 	
 	private Expression parseVarExp() throws Exception{
-		String var = parse_stream.peek().data;
-		consume(TokenType.IDENTIFIER);
+		String var = new String();
+		while(parse_stream.peek().type == TokenType.IDENTIFIER) {
+			var += parse_stream.pollFirst().data;
+		}
+		//consume(TokenType.IDENTIFIER);
 		exps.add(new VarExp(var));
 		return new VarExp(var);
 	}
@@ -171,9 +198,35 @@ public class letrec_parser {
 		
 		consume(TokenType.LPAREN);
 		Expression procvar = parseExp();
-		Expression exp = parseExp();
+		Expression exp = null;
+		while(parse_stream.peek().type != TokenType.RPAREN) {
+			exp = parseExp();
+		}
+		
 		consume(TokenType.RPAREN);
 		exps.add(new ProcVarExp(procvar, exp));
 		return new ProcVarExp(procvar, exp);
+	}
+	private Expression parseLetRecExp(TokenType LRtype) throws Exception {
+		//System.out.println("HELLO");
+		consume(LRtype);
+		String pname = new String();
+		while(parse_stream.peekFirst().type != TokenType.LPAREN) {
+			pname += parse_stream.pollFirst().data;
+		}
+		//System.out.println(pname);
+		consume(TokenType.LPAREN);
+		String arg = parse_stream.pollFirst().data;
+		consume(TokenType.RPAREN);
+		//System.out.println(exps);
+		consume(TokenType.ASSIGN);
+		//List<Expression> pbody = new ArrayList<>();
+		Expression pbody = null;
+		while(parse_stream.peekFirst().type != TokenType.IN) {
+			pbody = parseExp();
+		}
+		consume(TokenType.IN);
+		Expression letrecbody = parseExp();
+		return new LetRecExp(pname, arg, pbody, letrecbody);
 	}
 }

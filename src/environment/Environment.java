@@ -8,44 +8,63 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.io.Serializable;
 
 import expval.ExpVal;
 import expval.ProcVal;
 
 
 
-public class Environment {
+public class Environment extends ArrayList{
 	public List<Hashtable<String, ExpVal>> SymbolTable; 
+	public List<Hashtable<String, ExpVal>> ProcTable;
 	
 	public Environment() {
 		SymbolTable = new LinkedList<Hashtable<String, ExpVal>>();
+		ProcTable = new LinkedList<Hashtable<String, ExpVal>>();
+	}
+	
+	public Environment(List<Hashtable<String, ExpVal>> in) {
+		int size = in.size();
+//		/System.out.println("ST SIZE :: " + size);
+		if(size == 0) {
+			SymbolTable = new LinkedList<Hashtable<String, ExpVal>>();
+		}else {
+			for(int i = 0; i < size; i++) {
+				this.SymbolTable.add(in.get(i));
+			}
+		}
+		this.addAll(in);
+		
+	}
+	
+	public void extendEnvRec(Hashtable<String, ExpVal> procvals) {
+		ProcTable.add(procvals);
+	}
+	
+	public boolean containsProc(String procName) {
+		int psize = ProcTable.size();
+		for(int i =0; i< psize; i++) {
+			Hashtable<String, ExpVal> currentProc = ProcTable.get(i);
+			if(currentProc.containsKey(procName)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public boolean addAll(List<Hashtable<String,ExpVal>> in) {
 		
-		return SymbolTable.addAll(in);
+		return this.SymbolTable.addAll(in);
+	}
+	
+	public boolean clearaddAll(List<Hashtable<String,ExpVal>> in) {
+		this.SymbolTable.clear();
+		return this.SymbolTable.addAll(in);
 	}
 	
 	public int retrieveSize() {
 		return SymbolTable.size();
-	}
-	
-	public List<Hashtable<String, ExpVal>> retrieveProcScope(int level) {
-		List<Hashtable<String, ExpVal>> buildEnv = new LinkedList<Hashtable<String, ExpVal>>();
-		for(int i = 0; i < level; i++) {
-			//System.out.println("BUILDING PROC ENV::" + i + " ::" + SymbolTable.get(i));
-			buildEnv.add(SymbolTable.get(i));
-		}
-		return buildEnv;
-	}
-	
-	public String getKeys(int level) {
-		Set<String> keys = SymbolTable.get(level).keySet();
-		String keykey = null;
-		for(String key: keys) {
-			keykey = key;
-		}
-		return keykey;
 	}
 	
 	public boolean containsVar(String var) {
@@ -74,6 +93,11 @@ public class Environment {
 		SymbolTable.add(insertion);
 	}
 	
+	/*public void extendEnvRec(Hashtable<String, ExpVal> in) {
+		SymbolTable.add(in);
+	}*/
+	
+	
 	public ExpVal findExpVal(String var) {
 		int lvl = SymbolTable.size();
 		for(int i = lvl-1; i >= 0; i--) {
@@ -94,14 +118,39 @@ public class Environment {
 		SymbolTable.clear();
 	}
 	
+/*	public Environment DeepCopy(Environment in) {
+		Environment copy = new Environment();
+		for(Hashtable<String, ExpVal> ip : in.SymbolTable) {
+			copy.add(ip);
+		}
+		return copy;
+	}*/
+	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		int lvl = SymbolTable.size();
-		sb.append("Env :: ");
+		sb.append("\n||||||||||||||||ENV|||||||||||||||||");
 		for(int i=0; i<lvl; i++) {
-			sb.append("\n"+"ScopeLevel::" + i + "  " + SymbolTable.get(i));
+			sb.append("\n"+"ScopeLevel:_:" + i + "  " + SymbolTable.get(i));
 		}
-		sb.append("\nEnd Current Env\n");
+		sb.append("\n|||||||||End Current Env||||||||||||\n");
+		
+		sb.append("\n|||||||||||||ProcEnv||||||||||");
+		for(int j = 0; j < ProcTable.size(); j++) {
+			sb.append("\nRecProc::: " + ProcTable.get(j));
+		}
+		sb.append("\n|||||||||End ProcEnv||||||||||||||\n");
 		return sb.toString();
+	}
+
+	public ExpVal findProc(String var) {
+		int psize = ProcTable.size();
+		for(int i = 0; i < psize; i++) {
+			Hashtable<String, ExpVal> currentProc = ProcTable.get(i);
+			if(currentProc.containsKey(var)) {
+				return currentProc.get(var);
+			}
+		}
+		return null;
 	}
 }
