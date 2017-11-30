@@ -4,23 +4,26 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 
-import AST.Expression;
+import ast.Expression;
 import environment.Environment;
+import java.io.*;
 
 
 public class ProcVal extends ExpVal{
 	public String arg;
 	public Expression body;
-	//public Environment savedEnv = new Environment();
+	public Environment savedEnv = new Environment();
 	//public List<Hashtable<String, ExpVal>> savedEnv = new LinkedList<Hashtable<String, ExpVal>>();
-	public final List<Hashtable<String, ExpVal>> savedEnv;
+	//public final List<Hashtable<String, ExpVal>> savedEnv;
+	
 	final public int envLevel;
 	private String freekey = new String();
 	
 	public ProcVal(String args, Expression body, Environment savedEnv) {
 		this.arg = args;
 		this.body = body;
-		this.savedEnv = savedEnv.SymbolTable;
+		//this.savedEnv = savedEnv.SymbolTable;
+		this.savedEnv = savedEnv;
 		envLevel = savedEnv.retrieveSize();
 		//System.out.println("ProcEnv Scope:: "+envLevel);
 		//System.out.println(savedEnv.toString());
@@ -35,8 +38,13 @@ public class ProcVal extends ExpVal{
 			}
 		}
 	}*/
+	public void ensureScope(int level) {
+		for(int i = level; i < this.savedEnv.size() ; i++) {
+			this.savedEnv.remove(level);
+		}
+	}
 	
-	public List<Hashtable<String, ExpVal>> retrieveProcScope() {
+/*	public List<Hashtable<String, ExpVal>> retrieveProcScope() {
 		int level = envLevel;
 		List<Hashtable<String, ExpVal>> buildEnv = new LinkedList<Hashtable<String, ExpVal>>();
 		for(int i = 0; i < level; i++) {
@@ -44,7 +52,7 @@ public class ProcVal extends ExpVal{
 			buildEnv.add(savedEnv.get(i));
 		}
 		return buildEnv;
-	}
+	}*/
 /*	
 	public ExpVal bindFree() {
 		List<Hashtable<String, ExpVal>> current = savedEnv.retrieveProcScope(envLevel);

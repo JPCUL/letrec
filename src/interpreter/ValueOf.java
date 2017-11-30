@@ -1,6 +1,8 @@
 package interpreter;
 
-import AST.Expression;
+import java.io.IOException;
+
+import ast.Expression;
 
 public class ValueOf {
 	public Expression exp;
@@ -13,7 +15,7 @@ public class ValueOf {
 		return "Value: " + exp.toString();
 	}
 	
-	public ExpType visit(TypeVisitor visitor) {
+	public ExpType visit(TypeVisitor visitor) throws ClassNotFoundException, IOException {
 		return visitor.visit(this);
 	}
 }

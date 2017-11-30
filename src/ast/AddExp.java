@@ -1,4 +1,6 @@
-package AST;
+package ast;
+
+import java.io.IOException;
 
 import interpreter.ExpType;
 import interpreter.TypeVisitor;
@@ -16,7 +18,7 @@ public class AddExp extends Expression {
 		return "AddExp{" + left.toString() + " + " + right.toString() + "}";
 	}
 	
-	public ExpType visit(TypeVisitor visitor) {
+	public ExpType visit(TypeVisitor visitor) throws ClassNotFoundException, IOException {
 		return visitor.visit(this);
 		}
 }

@@ -8,20 +8,34 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.io.Serializable;
+import java.io.*;
 
 import expval.ExpVal;
 import expval.ProcVal;
 
 
 
-public class Environment extends ArrayList{
+public class Environment extends ArrayList implements Serializable{
 	public List<Hashtable<String, ExpVal>> SymbolTable; 
 	public List<Hashtable<String, ExpVal>> ProcTable;
 	
 	public Environment() {
 		SymbolTable = new LinkedList<Hashtable<String, ExpVal>>();
 		ProcTable = new LinkedList<Hashtable<String, ExpVal>>();
+	}
+	
+	public void writeToFile() throws IOException{
+		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("Environment.bin"));
+		
+		oos.writeObject(this);
+		oos.close();
+	}
+	
+	public Environment readFile() throws IOException, ClassNotFoundException {
+		ObjectInputStream ois = new ObjectInputStream(new FileInputStream("Environment.bin"));
+		Environment env = (Environment) ois.readObject();
+		return env;
+		//System.out.println(env.toString());
 	}
 	
 	public Environment(List<Hashtable<String, ExpVal>> in) {
@@ -112,6 +126,8 @@ public class Environment extends ArrayList{
 	public void leaveScope() {
 		//System.out.println("Popping Scope from level::" + SymbolTable.size());
 		SymbolTable.remove(SymbolTable.size()-1);
+		//ProcTable.remove((ProcTable.size()-1));
+		
 	}
 	
 	public void envClear() {

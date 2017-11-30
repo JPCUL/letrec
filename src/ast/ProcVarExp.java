@@ -1,5 +1,6 @@
-package AST;
+package ast;
 
+import java.io.IOException;
 import java.util.List;
 
 import interpreter.ExpType;
@@ -26,7 +27,7 @@ public class ProcVarExp extends Expression{
 		return cpstring.toString();
 	}
 	
-	public ExpType visit(TypeVisitor visitor) {
+	public ExpType visit(TypeVisitor visitor) throws ClassNotFoundException, IOException {
 		return visitor.visit(this);
 	}
 

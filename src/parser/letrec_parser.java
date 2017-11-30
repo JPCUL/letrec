@@ -5,8 +5,8 @@ import java.util.List;
 
 import com.sun.xml.internal.fastinfoset.util.CharArray;
 
+import ast.*;
 import scanner.*;
-import AST.*;
 import interpreter.Interpreter;
 import interpreter.ValueOf;
 import scanner.let_lang_scanner.Token;

@@ -1,5 +1,7 @@
 package interpreter;
 
-public interface ExpType {
+import java.io.Serializable;
+
+public interface ExpType extends Serializable{
 
 }
