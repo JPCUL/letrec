@@ -42,12 +42,12 @@ public class Interpreter implements TypeVisitor {
 		
 		Expression body = exp.body;
 		
-		System.out.println("\nLetExp: " + var);
+		//System.out.println("\nLetExp: " + var);
 		
 		ExpVal val = (ExpVal)exp.letexp.visit(this);
 		
 		if(val instanceof ProcVal) {
-			System.out.println("Extending Proc Expression");
+			//System.out.println("Extending Proc Expression");
 			ProcVal pval = (ProcVal)val;
 			
 			Hashtable<String, ExpVal> procdef = new Hashtable<String, ExpVal>();
@@ -97,7 +97,7 @@ public class Interpreter implements TypeVisitor {
 	public ExpType visit(VarExp exp) {
 		
 		String var = exp.var;
-		System.out.println("LOOKING FOR " + var +"\nIN" + itpEnv.toString());
+		//System.out.println("LOOKING FOR " + var +"\nIN" + itpEnv.toString());
 		//System.out.println("VarExpCall::Looking for Binding for:: " + var);
 		if(itpEnv.containsProc(var)) {
 			ProcVal retrievedProc = (ProcVal)itpEnv.findProc(var);
@@ -147,10 +147,10 @@ public class Interpreter implements TypeVisitor {
 
 	@Override
 	public ExpType visit(ProcVarExp exp) throws ClassNotFoundException, IOException {
-		System.out.println("!!----------PROC VAL CALL----------!!");
+		//System.out.println("!!----------PROC VAL CALL----------!!");
 		
 		ProcVal proc = (ProcVal)exp.procedure.visit(this);
-		System.out.println("ProcValEnv------:::------\n" + proc.savedEnv.toString());
+		//System.out.println("ProcValEnv------:::------\n" + proc.savedEnv.toString());
 		//System.out.println(proc.savedEnv.toString());
 		Environment holdEnv = new Environment();
 		
@@ -163,17 +163,17 @@ public class Interpreter implements TypeVisitor {
 		Expression operand = exp.operand;
 
 		String formalvar = proc.arg;
-		System.out.println("!!----------PVC::OP VISIT----------!!");
+		//System.out.println("!!----------PVC::OP VISIT----------!!");
 		ExpVal arg = (ExpVal)operand.visit(this);
 
 		
 		itpEnv.extendEnv(formalvar, arg);
-		System.out.println("!!----------PVC::BODY VISIT----------!!");
+		//System.out.println("!!----------PVC::BODY VISIT----------!!");
 		ExpType procval = proc.body.visit(this);
 		
 		holdEnv.writeToFile();
 		itpEnv = holdEnv.readFile();
-		System.out.println("!!----------PVC::RETURNING----------!!");
+		//System.out.println("!!----------PVC::RETURNING----------!!");
 		return procval;
 		
 	}

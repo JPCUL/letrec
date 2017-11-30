@@ -100,7 +100,7 @@ public class letrec_parser {
 	}
 	
 	private Expression parseLetExp(TokenType LETtype) throws Exception{
-		System.out.println("LET EXP");
+		//System.out.println("LET EXP");
 		String var = new String();
 		Expression letexp = null;
 		

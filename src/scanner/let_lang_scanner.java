@@ -165,7 +165,7 @@ public class let_lang_scanner {
     											+ "else -((double -(x,1)), -(0,2)) in (double 40)";
     	
     	
-    	String input = input9;
+    	String input = input6;
     	
     	
         ArrayList<Token> tokens = lex(input);
